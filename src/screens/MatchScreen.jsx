@@ -24,6 +24,7 @@ const MatchScreen = () => {
   const isFetchingRef = useRef(false);
   const ScrollCountRef = useRef(0);
   const doesNewMatchesAdded = useRef(false);
+  const deobounceTimeoutRef = useRef(null);
   const handleFavourite = (match, isFavourite) => {
     if (isFavourite) {
       setFavorites(favouties.filter(item => item.id !== match.id));
@@ -34,31 +35,33 @@ const MatchScreen = () => {
   const handleSearch = text => {
     setSearch(text);
     if (text.length > 0) {
-      const pagesToRender = 10 * (paginationCount - 1) + 1;
-      console.log('pagesToRender', pagesToRender);
-      setMatchesList(
-        matchesList.filter(item => {
-          const bothtext =
-            item.team1.toLowerCase() + 'vs' + item.team2.toLowerCase();
-          return (
-            item.team1
-              .toLowerCase()
-              .includes(text.toLowerCase().split('vs')[0].trim()) ||
-            item.team2
-              .toLowerCase()
-              .includes(text.toLowerCase().split('vs')[1]?.trim()) ||
-            bothtext.includes(text.toLowerCase())
-          );
-        }),
-      );
+      if (deobounceTimeoutRef.current) {
+        clearTimeout(deobounceTimeoutRef.current);
+      }
+      deobounceTimeoutRef.current = setTimeout(() => {
+        const pagesToRender = 10 * (paginationCount - 1) + 1;
+        console.log('pagesToRender', pagesToRender);
+        setMatchesList(
+          matchesList.filter(item => {
+            const bothtext =
+              item.team1.toLowerCase() + 'vs' + item.team2.toLowerCase();
+            return (
+              item.team1
+                .toLowerCase()
+                .includes(text.toLowerCase().split('vs')[0].trim()) ||
+              item.team2
+                .toLowerCase()
+                .includes(text.toLowerCase().split('vs')[1]?.trim()) ||
+              bothtext.includes(text.toLowerCase())
+            );
+          }),
+        );
+      }, 3000);
     } else {
       setMatchesList(matches);
     }
   };
 
-  useEffect(() => {
-    console.log('startIndex', startIndex);
-  }, [startIndex]);
   useEffect(() => {
     console.log('Added new list');
   }, [matchesList]);
